@@ -1,0 +1,10 @@
+import math
+
+def pointDir(x1, y1, x2, y2):
+	return math.atan2(-(y2-y1), (x2-x1)) % (2*math.pi)
+
+def pointDis(x1, y1, x2, y2):
+	return math.sqrt((x2-x1)**2 + (y2-y1)**2)
+	
+def disDir(x, y, dis, dir):
+	return (x + dis*math.cos(dir), y + dis*-math.sin(dir))
