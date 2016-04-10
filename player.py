@@ -1,11 +1,13 @@
 import math
+import time
 
 import pygame
 from pygame.locals import *
 
 import trig
-
 from polygon_object import *
+
+from bullet import *
 
 class Player:
 	def __init__(self, screenSize, frameRateHandler):
@@ -33,6 +35,10 @@ class Player:
 		self.gunPoly.setPosition(self.poly.posX, self.poly.posY)
 
 		self.frameRateHandler = frameRateHandler
+
+		self.reloadTime = 0.5
+		self.nextReady = time.time()
+		self.bullets = []
 
 
 	def update(self, eventHandler):
@@ -101,10 +107,19 @@ class Player:
 			self.gunPoly.posX, self.gunPoly.posY,
 			eventHandler.mouse.x, eventHandler.mouse.y))
 
+		for i in range(len(self.bullets)):
+			self.bullets[i].update(self.frameRateHandler)
+
+		if eventHandler.mouse.left.down: # or True:
+			self.fireBullet()
+
 
 	def draw(self, surface):
 		pygame.draw.polygon(surface, self.color, self.poly.pointList)
 		pygame.draw.polygon(surface, self.color, self.gunPoly.pointList)
+
+		for i in range(len(self.bullets)):
+			self.bullets[i].draw(surface)
 
 
 	# Brings the given speed away from 0.
@@ -142,3 +157,9 @@ class Player:
 			return (speed, True)
 		else:
 			return (self.decreaseSpeed(speed, self.speedDec*self.frameRateHandler.deltaCoefficient), False)
+
+	def fireBullet(self):
+		currentTime = time.time()
+		if currentTime >= self.nextReady:
+			self.bullets.append(Bullet(trig.disDir(self.poly.posX, self.poly.posY, 40, self.gunPoly.rotation), self.gunPoly.rotation, 1000))
+			self.nextReady = currentTime + self.reloadTime
