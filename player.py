@@ -6,11 +6,14 @@ from pygame.locals import *
 
 import trig
 from polygon_object import *
+from game_object import *
 
 from bullet import *
 
-class Player:
-	def __init__(self, screenSize, frameRateHandler):
+class Player(GameObject):
+	def __init__(self, gameObject):
+		super(Player, self).copy(gameObject)
+
 		self.color = Color(255, 255, 255)
 
 		self.speedMax = 300.0
@@ -27,21 +30,19 @@ class Player:
 		self.poly = PolygonObject(
 			[(8, 0), (40, 0), (48, 8), (48, 40), (40, 48), (8, 48), (0, 40), (0, 8)])
 		self.poly.centerOrigin()
-		self.poly.setPosition(screenSize[0]/2.0, screenSize[1]/2.0)
+		self.poly.setPosition(self.objectHandler.mainSurface.get_width()/2.0, self.objectHandler.mainSurface.get_height()/2.0)
 
 		self.gunPoly = PolygonObject(
 			[(0, 0), (45, 0), (45, 10), (0, 10)],
 			(5, 5))
 		self.gunPoly.setPosition(self.poly.posX, self.poly.posY)
 
-		self.frameRateHandler = frameRateHandler
-
+	
 		self.reloadTime = 0.5
 		self.nextReady = time.time()
-		self.bullets = []
 
 
-	def update(self, eventHandler):
+	def update(self):
 		"""self.speedX, xChange = self.speedConditional(self.speedX,
 			eventHandler.keys.down[K_d], eventHandler.keys.down[K_a])
 
@@ -53,19 +54,19 @@ class Player:
 
 		xDesire = 0
 		yDesire = 0
-		if eventHandler.keys.down[K_d]:
+		if self.objectHandler.eventHandler.keys.down[K_d]:
 			xDesire += 100
-		elif eventHandler.keys.down[K_a]:
+		elif self.objectHandler.eventHandler.keys.down[K_a]:
 			xDesire -= 100
-		if eventHandler.keys.down[K_s]:
+		if self.objectHandler.eventHandler.keys.down[K_s]:
 			yDesire += 100
-		elif eventHandler.keys.down[K_w]:
+		elif self.objectHandler.eventHandler.keys.down[K_w]:
 			yDesire -= 100
 
 		if xDesire != 0 or yDesire != 0:
 			desiredDir = trig.pointDir(0, 0, xDesire, yDesire)
 
-			changeDir = self.directionChange*self.frameRateHandler.deltaCoefficient
+			changeDir = self.directionChange*self.objectHandler.frameRateHandler.deltaCoefficient
 			#print changeDir
 
 			if abs(desiredDir-self.direction) <= changeDir or \
@@ -77,11 +78,11 @@ class Player:
 			else:
 				self.direction -= changeDir;
 
-			self.speed += self.speedInc*self.frameRateHandler.deltaCoefficient - self.speed*0.005
+			self.speed += self.speedInc*self.objectHandler.frameRateHandler.deltaCoefficient - self.speed*0.005
 			if self.speed > self.speedMax:
 				self.speed = self.speedMax
 		elif self.speed > 0.0:
-			self.speed -= self.speedDec*self.frameRateHandler.deltaCoefficient - self.speed*0.005
+			self.speed -= self.speedDec*self.objectHandler.frameRateHandler.deltaCoefficient - self.speed*0.005
 			if self.speed < 0.0:
 				self.speed = 0.0
 
@@ -91,7 +92,7 @@ class Player:
 		while self.direction >= math.pi*2:
 			self.direction -= math.pi*2
 
-		moveX, moveY = trig.disDir(0, 0, self.speed*self.frameRateHandler.deltaCoefficient, self.direction)
+		moveX, moveY = trig.disDir(0, 0, self.speed*self.objectHandler.frameRateHandler.deltaCoefficient, self.direction)
 		# print moveX, moveY
 
 		self.poly.setRotation(self.direction)
@@ -105,21 +106,15 @@ class Player:
 
 		self.gunPoly.setRotation(trig.pointDir(
 			self.gunPoly.posX, self.gunPoly.posY,
-			eventHandler.mouse.x, eventHandler.mouse.y))
+			self.objectHandler.eventHandler.mouse.x, self.objectHandler.eventHandler.mouse.y))
 
-		for i in range(len(self.bullets)):
-			self.bullets[i].update(self.frameRateHandler)
-
-		if eventHandler.mouse.left.down: # or True:
+		if self.objectHandler.eventHandler.mouse.left.down: # or True:
 			self.fireBullet()
 
 
-	def draw(self, surface):
-		pygame.draw.polygon(surface, self.color, self.poly.pointList)
-		pygame.draw.polygon(surface, self.color, self.gunPoly.pointList)
-
-		for i in range(len(self.bullets)):
-			self.bullets[i].draw(surface)
+	def draw(self):
+		pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.poly.pointList)
+		pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.gunPoly.pointList)
 
 
 	# Brings the given speed away from 0.
@@ -146,20 +141,20 @@ class Player:
 	# Given 2 bools, increases or decreases the given speed.
 	def speedConditional(self, speed, toAdd, toSubtract):
 		if toAdd:
-			speed += self.speedInc*self.frameRateHandler.deltaCoefficient - speed*0.005
+			speed += self.speedInc*self.objectHandler.frameRateHandler.deltaCoefficient - speed*0.005
 			if speed > self.speedMax:
 				speed = self.speedMax
 			return (speed, True)
 		elif toSubtract:
-			speed -= self.speedInc*self.frameRateHandler.deltaCoefficient - speed*0.005
+			speed -= self.speedInc*self.objectHandler.frameRateHandler.deltaCoefficient - speed*0.005
 			if speed < -self.speedMax:
 				speed = -self.speedMax
 			return (speed, True)
 		else:
-			return (self.decreaseSpeed(speed, self.speedDec*self.frameRateHandler.deltaCoefficient), False)
+			return (self.decreaseSpeed(speed, self.speedDec*self.objectHandler.frameRateHandler.deltaCoefficient), False)
 
 	def fireBullet(self):
 		currentTime = time.time()
 		if currentTime >= self.nextReady:
-			self.bullets.append(Bullet(trig.disDir(self.poly.posX, self.poly.posY, 40, self.gunPoly.rotation), self.gunPoly.rotation, 1000))
+			self.objectHandler.pushObject(Bullet, (self.index, trig.disDir(self.poly.posX, self.poly.posY, 40, self.gunPoly.rotation), self.gunPoly.rotation, 1000))
 			self.nextReady = currentTime + self.reloadTime
