@@ -3,10 +3,11 @@ from game_object import *
 from player import *
 
 class ObjectHandler:
-	def __init__(self, eventHandler, frameRateHandler, mainSurface):
+	def __init__(self, eventHandler, frameRateHandler, mainSurface, meshDict):
 		self.eventHandler = eventHandler
 		self.frameRateHandler = frameRateHandler
 		self.mainSurface = mainSurface
+		self.meshDict = meshDict
 
 		# Private list of all the objects currently in memory.
 		self.__objects = []

@@ -7,12 +7,18 @@ from pygame.locals import *
 import trig
 from polygon_object import *
 from game_object import *
+from combat_object import *
+from mesh import *
 
 from bullet import *
 
-class Player(GameObject):
+class Player(GameObject, CombatObject):
 	def __init__(self, gameObject):
 		super(Player, self).copy(gameObject)
+		super(GameObject, self).__init__({
+			"hpMax": 100,
+			"attackPower": 10
+		})
 
 		self.color = Color(255, 255, 255)
 
@@ -26,6 +32,10 @@ class Player(GameObject):
 
 		self.speedX = 0.0
 		self.speedY = 0.0
+
+		self.mesh = Mesh(self.objectHandler.meshDict["tank_0"],
+			(self.objectHandler.mainSurface.get_width()/2.0,
+			 self.objectHandler.mainSurface.get_height()/2.0))
 
 		self.poly = PolygonObject(
 			[(8, 0), (40, 0), (48, 8), (48, 40), (40, 48), (8, 48), (0, 40), (0, 8)])
@@ -97,6 +107,8 @@ class Player(GameObject):
 
 		self.poly.setRotation(self.direction)
 		self.poly.move(moveX, moveY)
+		self.mesh.getPoly("body").setRotation(self.direction)
+		self.mesh.move(moveX, moveY)
 		self.gunPoly.move(moveX, moveY)
 
 
@@ -104,7 +116,11 @@ class Player(GameObject):
 			self.speedY*self.frameRateHandler.deltaCoefficient)
 		self.gunPoly.setPosition(self.poly.posX, self.poly.posY)"""
 
-		self.gunPoly.setRotation(trig.pointDir(
+		"""self.gunPoly.setRotation(trig.pointDir(
+			self.gunPoly.posX, self.gunPoly.posY,
+			self.objectHandler.eventHandler.mouse.x, self.objectHandler.eventHandler.mouse.y))"""
+
+		self.mesh.getPoly("gun").setRotation(trig.pointDir(
 			self.gunPoly.posX, self.gunPoly.posY,
 			self.objectHandler.eventHandler.mouse.x, self.objectHandler.eventHandler.mouse.y))
 
@@ -113,8 +129,10 @@ class Player(GameObject):
 
 
 	def draw(self):
-		pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.poly.pointList)
-		pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.gunPoly.pointList)
+		#pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.poly.pointList)
+		#pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.gunPoly.pointList)
+		pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.mesh.getPoints("body"))
+		pygame.draw.polygon(self.objectHandler.mainSurface, self.color, self.mesh.getPoints("gun"))
 
 
 	# Brings the given speed away from 0.
@@ -156,5 +174,6 @@ class Player(GameObject):
 	def fireBullet(self):
 		currentTime = time.time()
 		if currentTime >= self.nextReady:
-			self.objectHandler.pushObject(Bullet, (self.index, trig.disDir(self.poly.posX, self.poly.posY, 40, self.gunPoly.rotation), self.gunPoly.rotation, 1000))
+			gunRotation = self.mesh.getPoly("gun").rotation
+			self.objectHandler.pushObject(Bullet, (self.index, trig.disDir(self.poly.posX, self.poly.posY, 40, gunRotation), gunRotation, 1000))
 			self.nextReady = currentTime + self.reloadTime
