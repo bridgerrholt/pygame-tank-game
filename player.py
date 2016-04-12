@@ -73,7 +73,18 @@ class Player(GameObject, CombatObject):
 		elif self.objectHandler.eventHandler.keys.down[K_w]:
 			yDesire -= 100
 
-		if xDesire != 0 or yDesire != 0:
+		if self.objectHandler.eventHandler.keys.down[K_SPACE]:
+			self.speed += self.speedInc*self.objectHandler.frameRateHandler.deltaCoefficient - self.speed*0.005
+			if self.speed > self.speedMax:
+				self.speed = self.speedMax
+		elif self.objectHandler.eventHandler.keys.down[K_LSHIFT]:
+			if self.speed > 0.0:
+				self.speed -= self.speedDec*self.objectHandler.frameRateHandler.deltaCoefficient - self.speed*0.005
+				if self.speed < 0.0:
+					self.speed = 0.0
+
+
+		"""if xDesire != 0 or yDesire != 0:
 			desiredDir = trig.pointDir(0, 0, xDesire, yDesire)
 
 			changeDir = self.directionChange*self.objectHandler.frameRateHandler.deltaCoefficient
@@ -91,10 +102,17 @@ class Player(GameObject, CombatObject):
 			self.speed += self.speedInc*self.objectHandler.frameRateHandler.deltaCoefficient - self.speed*0.005
 			if self.speed > self.speedMax:
 				self.speed = self.speedMax
+
 		elif self.speed > 0.0:
 			self.speed -= self.speedDec*self.objectHandler.frameRateHandler.deltaCoefficient - self.speed*0.005
 			if self.speed < 0.0:
-				self.speed = 0.0
+				self.speed = 0.0"""
+
+		changeDir = self.directionChange*self.objectHandler.frameRateHandler.deltaCoefficient
+		if self.objectHandler.eventHandler.keys.down[K_a]:
+			self.direction += changeDir
+		elif self.objectHandler.eventHandler.keys.down[K_d]:
+			self.direction -= changeDir
 
 
 		while self.direction < 0:

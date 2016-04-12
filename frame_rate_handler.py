@@ -17,6 +17,8 @@ class FrameRateHandler:
 		# Multiplied by per second speeds
 		self.deltaCoefficient = 0
 
+		self.previousRate = frameRate
+
 	def updateStart(self):
 		self.frameStart = time.time()
 
@@ -28,6 +30,10 @@ class FrameRateHandler:
 		waitUntil = self.frameEnd + self.frameDuration - (self.frameEnd - self.frameStart)
 		while time.time() < waitUntil:
 			self.deltaCoefficient = (time.time() - self.frameStart)
+		if self.deltaCoefficient == 0:
+			self.previousRate = 60
+		else:
+			self.previousRate = 1.0 / self.deltaCoefficient
 
 
 

@@ -9,6 +9,7 @@ from event_handler import EventHandler
 from frame_rate_handler import *
 from object_handler import *
 from load_meshes import *
+from interface_handler import *
 
 from polygon_object import *
 from raw_mesh import *
@@ -24,6 +25,8 @@ def main():
 	mainSurface = pygame.display.set_mode((1280, 720))
 
 	objectHandler = ObjectHandler(eventHandler, frameRateHandler, mainSurface, meshDict)
+
+	interfaceHandler = InterfaceHandler(objectHandler)
 
 	tankMesh = RawMesh([
 		("body", [(8, 0), (40, 0), (48, 8), (48, 40), (40, 48), (8, 48), (0, 40), (0, 8)]),
@@ -45,6 +48,7 @@ def main():
 
 		mainSurface.fill(backColor)
 		objectHandler.draw()
+		interfaceHandler.draw()
 
 		pygame.display.flip()
 

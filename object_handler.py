@@ -1,6 +1,7 @@
 from game_object import *
 
 from player import *
+from enemy import *
 
 class ObjectHandler:
 	def __init__(self, eventHandler, frameRateHandler, mainSurface, meshDict):
@@ -16,6 +17,7 @@ class ObjectHandler:
 		self.__deadIndexes = []
 
 		self.pushObject(Player)
+		self.pushObject(Enemy, [(5, 5)])
 
 	# Updates all the alive objects.
 	def update(self):
@@ -33,6 +35,7 @@ class ObjectHandler:
 	# additional constructor arguments (in the form of a tuple).
 	def pushObject(self, ObjectClass, arguments=()):
 		# If there are indicated locations, use one and remove it.
+		arguments = tuple(arguments)
 		if len(self.__deadIndexes) > 0:
 			index = self.__deadIndexes[-1]
 			self.__objects[index] = \
